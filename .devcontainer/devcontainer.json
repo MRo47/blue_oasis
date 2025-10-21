@@ -1,0 +1,23 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/python
+{
+	"name": "blue_oasis_dev",
+	"dockerComposeFile": [
+    "docker-compose.yml"
+  ],
+	"service": "blue_oasis_dev",
+	"workspaceFolder": "/home/ubuntu/blue_oasis/workspace",
+	"customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.autopep8",
+        "ms-python.debugpy",
+        "ms-python.isort",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "njpwerner.autodocstring",
+        "mhutchie.git-graph"
+      ]
+    }
+  }
+}

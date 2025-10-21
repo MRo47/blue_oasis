@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  blue_oasis_dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blue_oasis_dev
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - SSH_AUTH_SOCK=/ssh-agent
+      # - DISPLAY=${DISPLAY}        # For GUI apps
+      # - QT_X11_NO_MITSHM=1        # Fix for some Qt GUIs
+    volumes:
+      - ..:/home/ubuntu/blue_oasis:cached
+      - /home/myron/data:/home/ubuntu/data
+      - $SSH_AUTH_SOCK:/ssh-agent
+      # - /tmp/.X11-unix:/tmp/.X11-unix      # x11 forwarding
+    user: "ubuntu"
+    tty: true
+    stdin_open: true
+    network_mode: host
