@@ -7,6 +7,15 @@
   ],
 	"service": "blue_oasis_dev",
 	"workspaceFolder": "/home/ubuntu/blue_oasis/workspace",
+  "features": {
+    "ghcr.io/devcontainers/features/sshd:1": {}
+  },
+  "mounts": [
+    "source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"
+  ],
+  "remoteEnv": {
+    "SSH_AUTH_SOCK": "/ssh-agent"
+  },
 	"customizations": {
     "vscode": {
       "extensions": [
