@@ -39,7 +39,10 @@ def stratified_group_split(df: DataFrame, label_id: str, group_id: str,
       The test set.
   """
   freq_classes = df[label_id].value_counts()
+  print(freq_classes)
   valid_species = freq_classes[freq_classes >= min_valid_classes].index
+  print(valid_species)
+  print(f"total valid: {len(valid_species)} of {df['Species eBird Code'].nunique()}")
   df = df[df[label_id].isin(valid_species)]
 
   sgkf = StratifiedGroupKFold(n_splits=n_splits, shuffle=shuffle, 
