@@ -4,145 +4,203 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
-from sklearn.model_selection import StratifiedGroupKFold
+from sklearn.model_selection import GroupKFold, StratifiedGroupKFold
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def filter_classes(df: DataFrame, min_sample_size: int = 1):
+    """
+    Filters out classes with less than min_sample_size samples from a dataframe.
+
+    Parameters
+    ----------
+    df : DataFrame
+        The dataframe to filter.
+    min_sample_size : int
+        The minimum number of samples required for a class to be kept.
+
+    Returns
+    -------
+    DataFrame
+        The filtered dataframe.
+
+    Notes
+    -----
+    If min_sample_size is less than or equal to 1, the dataframe is returned unchanged.
+    """
+    df = df.copy()
+    if min_sample_size <= 1:
+        logging.warning("Nothing to filter, min_sample_size <= 1")
+        return df
+    class_counts = df['Species eBird Code'].value_counts()
+    valid_classes = class_counts[class_counts >= min_sample_size].index
+    num_classes = df['Species eBird Code'].nunique()
+    logging.warning(f"Filtering out {num_classes - len(valid_classes)}/{num_classes}, "
+                f"classes with less than {min_sample_size} samples.")
+    return df[df['Species eBird Code'].isin(valid_classes)]
 
 def stratified_group_split(
     df: DataFrame,
     label_id: str,
     group_id: str,
-    min_samples_per_class: int = 5,
     test_size: float = 0.2,
     val_size: float = 0.2,
     random_state: int = 37
-    ) -> Tuple[DataFrame, DataFrame, DataFrame]:
-    """
-    Splits a dataframe into training, validation, and test sets using a nested
-    stratified group k-fold approach to prevent data leakage.
+) -> Tuple[DataFrame, DataFrame, DataFrame]:
 
-    The process is as follows:
-    1. Filter out classes with fewer than `min_samples_per_class`.
-    2. Split the data into a (train + val) set and a test set, ensuring groups are not split.
-    3. Split the (train + val) set into a final train set and a validation set,
-        again ensuring groups are not split.
+    """
+    Splits a dataframe into training, validation, and test sets, ensuring no
+    group leakage, even with classes that are hard to stratify.
+
+    The logic is as follows:
+    1.  Identify "problematic" classes (those with too few unique groups).
+    2.  Partition the entire dataset by GROUPS:
+        - `df_stratifiable`: Contains data from groups with ONLY well-behaved classes.
+        - `df_problematic`: Contains data from groups with AT LEAST ONE problematic class.
+        These two dataframes have no groups in common.
+    3.  Split `df_stratifiable` using a nested StratifiedGroupKFold.
+    4.  Split `df_problematic` using a nested GroupKFold (prioritizing group integrity).
+    5.  Concatenate the respective splits to form the final train, val, and test sets.
 
     Parameters
     ----------
     df : DataFrame
-        The dataframe to be split.
+        The dataframe to split.
     label_id : str
-        The name of the column containing the labels for stratification.
+        The column containing the class labels.
     group_id : str
-        The name of the column containing the group ids.
-    min_samples_per_class : int, optional
-        Minimum number of samples required for a class to be included, by default 5.
-    test_size : float, optional
-        The proportion of the dataset to be used for the test set, by default 0.2.
-    val_size : float, optional
-        The proportion of the (train+val) set to be used for validation, by default 0.2.
-    random_state : int, optional
-        The random seed for reproducibility, by default 101.
+        The column containing the group labels.
+    test_size : float
+        The proportion of the dataframe to use for the test set.
+    val_size : float
+        The proportion of the dataframe (after removing the test set) to use for the validation set.
+    random_state : int
+        The random state to use for the split.
 
     Returns
     -------
     Tuple[DataFrame, DataFrame, DataFrame]
-        A tuple containing the training, validation, and test dataframes.
+        The train, validation and test dataframes.
     """
-    # filter out rare classes
-    class_counts = df[label_id].value_counts()
-    valid_classes = class_counts[class_counts >= min_samples_per_class].index
-
-    if len(valid_classes) < class_counts.shape[0]:
-        logging.warning(f"Filtered out {class_counts.shape[0] - len(valid_classes)} classes "
-                        f"with < {min_samples_per_class} samples.")
-
-    df_filtered = df[df[label_id].isin(valid_classes)].copy()
-
-    X = df_filtered.index
-    y = df_filtered[label_id]
-    groups = df_filtered[group_id]
-
-    # first split: (train + val) + test
-    # Calculate n_splits needed to achieve the desired test_size
+    df = df.copy()
+    
+    # 1. identify problematic classes (too few unique groups per class)
+    # A class is problematic if it doesn't appear in enough unique groups to be split.
+    # We need at least n_splits for the test set and n_splits for the val set.
     n_splits_test = int(np.ceil(1.0 / test_size))
-    sgkf_test = StratifiedGroupKFold(n_splits=n_splits_test, shuffle=True, random_state=random_state)
+    val_size_of_train = val_size / (1 - test_size)
+    n_splits_val = int(np.ceil(1.0 / val_size_of_train))
+    
+    class_group_counts = df.groupby(label_id)[group_id].nunique()
+    # A class is problematic if it can't be safely split in either stage.
+    problematic_classes = class_group_counts[
+        (class_group_counts < n_splits_test) | (class_group_counts < n_splits_val)
+    ].index
 
-    try:
-        train_val_idx, test_idx = next(sgkf_test.split(X, y, groups))
-    except ValueError as e:
-        logging.error(f"Could not perform initial split. Maybe test_size is too high or "
-                        f"not enough groups for stratification. Error: {e}")
-        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-
-    train_val_df = df_filtered.iloc[train_val_idx]
-    test_df = df_filtered.iloc[test_idx]
-
-    # create the second split: train + val from the train_val_df
-    X_train_val = train_val_df.index
-    y_train_val = train_val_df[label_id]
-    groups_train_val = train_val_df[group_id]
-
-    # calculate n_splits for the validation set
-    n_splits_val = int(np.ceil(1.0 / val_size))
-    sgkf_val = StratifiedGroupKFold(n_splits=n_splits_val, shuffle=True, random_state=random_state)
-
-    try:
-        train_idx, val_idx = next(sgkf_val.split(X_train_val, y_train_val, groups_train_val))
-    except ValueError as e:
-        # this can happen if a class in train_val_df has only one group
-        logging.warning(f"Stratified group split for validation failed: {e}. "
-                        "The validation set will be empty, and the samples will remain in training.")
-        # in this case, we can just return train_val_df as train_df and an empty val_df
-        train_df = train_val_df
-        val_df = pd.DataFrame(columns=df.columns)
+    # 2. partition df by groups
+    if not problematic_classes.empty:
+        logging.warning(
+            f"Identified {len(problematic_classes)} problematic classes with too few "
+            f"unique groups for reliable stratification."
+        )
+        # Find all groups that contain any of these problematic classes
+        problematic_groups = df[df[label_id].isin(problematic_classes)][group_id].unique()
+        
+        logging.info(f"Assigning {len(problematic_groups)} groups containing these classes to the 'problematic' split path.")
+        
+        df_problematic = df[df[group_id].isin(problematic_groups)]
+        df_stratifiable = df[~df[group_id].isin(problematic_groups)]
     else:
-        train_df = train_val_df.iloc[train_idx]
-        val_df = train_val_df.iloc[val_idx]
+        logging.info("No problematic classes found. Using a standard stratified split.")
+        df_stratifiable = df
+        df_problematic = pd.DataFrame(columns=df.columns)
 
-    logging.info(f"Original dataset size: {len(df)}")
-    logging.info(f"Filtered dataset size: {len(df_filtered)}")
-    logging.info(f"Train size: {len(train_df)}, Val size: {len(val_df)}, Test size: {len(test_df)}")
+    all_splits = {'train': [], 'val': [], 'test': []}
 
-    # sanity check for group overlap (should be zero)
-    train_groups = set(train_df[group_id])
-    val_groups = set(val_df[group_id])
-    test_groups = set(test_df[group_id])
+    # 3. split stratifiable data
+    if not df_stratifiable.empty:
+        sgkf_test = StratifiedGroupKFold(n_splits=n_splits_test, shuffle=True, random_state=random_state)
+        X_s = df_stratifiable.index
+        y_s = df_stratifiable[label_id]
+        groups_s = df_stratifiable[group_id]
 
-    assert len(train_groups.intersection(val_groups)) == 0, "Data Leakage: Groups overlap between train and val!"
-    assert len(train_groups.intersection(test_groups)) == 0, "Data Leakage: Groups overlap between train and test!"
-    assert len(val_groups.intersection(test_groups)) == 0, "Data Leakage: Groups overlap between val and test!"
-    logging.info("Successfully verified no group overlap between splits.")
+        train_val_idx_s, test_idx_s = next(sgkf_test.split(X_s, y_s, groups_s))
+        train_val_s = df_stratifiable.iloc[train_val_idx_s]
+        all_splits['test'].append(df_stratifiable.iloc[test_idx_s])
 
-    # check for missing classes
-    original_classes = set(df_filtered[label_id].unique())
-    for split_name, split_df in (('Train', train_df), ('Validation', val_df), ('Test', test_df)):
-        missing = original_classes - set(split_df[label_id].unique())
-        if missing and not split_df.empty:
-            logging.warning(f"{split_name} split is missing {len(missing)} classes.")
+        sgkf_val = StratifiedGroupKFold(n_splits=n_splits_val, shuffle=True, random_state=random_state)
+        X_tv_s = train_val_s.index
+        y_tv_s = train_val_s[label_id]
+        groups_tv_s = train_val_s[group_id]
+
+        train_idx_s, val_idx_s = next(sgkf_val.split(X_tv_s, y_tv_s, groups_tv_s))
+        all_splits['train'].append(train_val_s.iloc[train_idx_s])
+        all_splits['val'].append(train_val_s.iloc[val_idx_s])
+
+    # 4. split problematic data
+    if not df_problematic.empty:
+        # Use GroupKFold here since stratification is not reliable
+        gkf_test = GroupKFold(n_splits=n_splits_test)
+        X_p = df_problematic.index
+        groups_p = df_problematic[group_id]
+        
+        train_val_idx_p, test_idx_p = next(gkf_test.split(X_p, groups=groups_p))
+        train_val_p = df_problematic.iloc[train_val_idx_p]
+        all_splits['test'].append(df_problematic.iloc[test_idx_p])
+
+        if not train_val_p.empty:
+            gkf_val = GroupKFold(n_splits=n_splits_val)
+            X_tv_p = train_val_p.index
+            groups_tv_p = train_val_p[group_id]
+
+            # Need to handle case where there are not enough groups for the split
+            if train_val_p[group_id].nunique() < n_splits_val:
+                logging.warning("Not enough unique groups in problematic set for validation split. Assigning all to training.")
+                all_splits['train'].append(train_val_p)
+            else:
+                train_idx_p, val_idx_p = next(gkf_val.split(X_tv_p, groups=groups_tv_p))
+                all_splits['train'].append(train_val_p.iloc[train_idx_p])
+                all_splits['val'].append(train_val_p.iloc[val_idx_p])
+
+    # 5. concatenate final splits
+    train_df = pd.concat(all_splits['train'], ignore_index=True)
+    val_df = pd.concat(all_splits['val'], ignore_index=True)
+    test_df = pd.concat(all_splits['test'], ignore_index=True)
+    
+    logging.info(f"Final split sizes -> Train: {len(train_df)}, Val: {len(val_df)}, Test: {len(test_df)}")
+    
+    # 6. verify
+    train_groups = set(train_df[group_id].unique())
+    val_groups = set(val_df[group_id].unique())
+    test_groups = set(test_df[group_id].unique())
+
+    assert len(train_groups.intersection(val_groups)) == 0, "Leakage: train/val groups overlap!"
+    assert len(train_groups.intersection(test_groups)) == 0, "Leakage: train/test groups overlap!"
+    assert len(val_groups.intersection(test_groups)) == 0, "Leakage: val/test groups overlap!"
+    logging.info("Successfully verified no group overlap between final splits.")
 
     return train_df, val_df, test_df
 
 def main():
-  from pathlib import Path
+    from pathlib import Path
 
-  annotations_csv = Path("~/data/kenya_birds/annotations.csv").expanduser()
-  df = pd.read_csv(annotations_csv)
+    annotations_csv = Path("~/data/kenya_birds/annotations.csv").expanduser()
+    df = pd.read_csv(annotations_csv)
 
-  train_df, val_df, test_df = stratified_group_split(
-      df,
-      label_id='Species eBird Code',
-      group_id='Filename',
-      test_size=0.2, # 20% for test
-      val_size=0.25,  # 25% of the remaining 80% will be validation (i.e., 20% of original)
-      min_samples_per_class=5
-  )
-  
-  print("\n--- Split Results ---")
-  print(f"Train DF shape: {train_df.shape}")
-  print(f"Validation DF shape: {val_df.shape}")
-  print(f"Test DF shape: {test_df.shape}")
+    df = filter_classes(df, min_sample_size=3)
 
+    train_df, val_df, test_df = stratified_group_split(
+        df,
+        label_id='Species eBird Code',
+        group_id='Filename',
+        test_size=0.2,
+        val_size=0.2, # 20% of original for test, 20% for val
+    )
+    
+    print("\n--- Split Results ---")
+    print(f"Train DF shape: {train_df.shape}")
+    print(f"Validation DF shape: {val_df.shape}")
+    print(f"Test DF shape: {test_df.shape}")
 
 if __name__ == "__main__":
-   main()
+    main()
