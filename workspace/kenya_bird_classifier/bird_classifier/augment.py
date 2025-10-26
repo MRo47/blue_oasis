@@ -12,16 +12,16 @@ time_augmentations = am.Compose([
         am.AddColorNoise(min_snr_db=5.0, max_snr_db=35.0, min_f_decay=-6.02, max_f_decay=-6.02),
     ], p=0.5),
 
-    # Shift the audio left or right with a 50% probability
+    # like numpy roll
     am.Shift(min_shift=-0.5, max_shift=0.5, shift_unit='fraction', p=0.5),
 
-    # Adjust the pitch with a 30% probability
+    # pitch variation
     am.PitchShift(min_semitones=-4, max_semitones=4, p=0.3),
     
-    # Adjust the speed with a 30% probability
+    # speed variation
     am.TimeStretch(min_rate=0.8, max_rate=1.25, p=0.3),
 
-    # Adjust the volume with a 50% probability
+    # volume variation
     am.Gain(min_gain_db=-12, max_gain_db=12, p=0.5),
 ])
 
