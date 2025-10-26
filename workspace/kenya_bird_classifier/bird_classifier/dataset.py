@@ -8,8 +8,7 @@ from data_splitter import filter_classes, stratified_group_split
 from logging_config import logger
 from preprocessing import extract_mel_db_spec, preprocess
 from torch.utils.data import DataLoader, Dataset
-
-from workspace.kenya_bird_classifier.bird_classifier.utils import load_sample
+from utils import load_sample
 
 
 class BirdSoundDataset(Dataset):
