@@ -194,7 +194,7 @@ def main():
         label_id='Species eBird Code',
         group_id='Filename',
         test_size=0.2,
-        val_size=0.2, # 20% of original for test, 20% for val
+        val_size=0.2,
     )
     
     logger.info("--- Split Results ---")

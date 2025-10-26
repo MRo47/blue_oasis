@@ -1,6 +1,14 @@
 import audiomentations as am
 import numpy as np
 
+"""composed time augmentations for bird classification
+
+1. adds backgorund noise resembling wind/rain and low rumble at 0.5 probability
+2. shifts the audio signal left or right fractionally +- 0.3 at 0.5 probability
+3. pitch shift +- 4 semitones at 0.3 probability
+4. speed shift +- 20% at 0.3 probability
+5. volume variation +- 12dB at 0.5 probability
+"""
 time_augmentations = am.Compose([
     # Add background noise with a 50% probability
     am.OneOf([
@@ -13,7 +21,7 @@ time_augmentations = am.Compose([
     ], p=0.5),
 
     # like numpy roll
-    am.Shift(min_shift=-0.5, max_shift=0.5, shift_unit='fraction', p=0.5),
+    am.Shift(min_shift=-0.3, max_shift=0.3, shift_unit='fraction', p=0.5),
 
     # pitch variation
     am.PitchShift(min_semitones=-4, max_semitones=4, p=0.3),
@@ -28,7 +36,26 @@ time_augmentations = am.Compose([
 
 
 def time_domain_augment(y, sr=22050):
-    return time_augmentations(samples=y, sample_rate=sr)
+	"""
+	Applies time domain augmentations to an audio signal.
+	1. adds backgorund noise resembling wind/rain and low rumble at 0.5 probability
+	2. shifts the audio signal left or right fractionally +- 0.3 at 0.5 probability
+	3. pitch shift +- 4 semitones at 0.3 probability
+	4. speed shift +- 20% at 0.3 probability
+	5. volume variation +- 12dB at 0.5 probability
+
+	Parameters
+	----------
+	y : NDArray
+			The audio signal to be augmented.
+	sr : int, optional
+			The sampling rate of the signal. Default is 22050.
+
+	Returns
+	-------
+	The augmented audio signal.
+	"""
+	return time_augmentations(samples=y, sample_rate=sr)
 
 def spec_augment(mel_spec_db, freq_mask_width=10, time_mask_width=10):
 	"""

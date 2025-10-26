@@ -8,8 +8,24 @@ def setup_logger(
     log_file: str | None = None,
     level: int = logging.INFO,
 ):
-    """Configure and return a logger with console + optional file output."""
+    """
+    Set up a logger for the bird classifier.
 
+    Parameters
+    ----------
+    name : str
+        The name of the logger. Defaults to "bird_classifier".
+    log_file : str | None
+        The path to a log file. If None, no file handler is added.
+        Defaults to None.
+    level : int
+        The logging level. Defaults to logging.INFO.
+
+    Returns
+    -------
+    logger : logging.Logger
+        A logger object with the specified name, level, and handlers.
+    """
     logger = logging.getLogger(name)
     logger.setLevel(level)
     logger.propagate = False

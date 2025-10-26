@@ -88,7 +88,6 @@ class BirdSoundDataset(Dataset):
             mel_db_spec, _ = extract_mel_db_spec(prep_sample, sr=self.sr)
             aug_spec = mel_db_spec
 
-        # convert to PyTorch Tensor
         # add a channel dimension: (n_mels, time) -> (1, n_mels, time)
         spec_tensor = torch.tensor(aug_spec).unsqueeze(0)
         label_tensor = torch.tensor(label, dtype=torch.long)
@@ -126,7 +125,7 @@ def main():
 		spec_augment_fn=spec_augment
 	)
 
-	# Validation dataset with NO augmentations
+	# validation dataset with NO augmentations
 	val_dataset = BirdSoundDataset(
 		df=val_df,
 		recordings_path=recordings_path,
@@ -138,7 +137,7 @@ def main():
 		spec_augment_fn=None
 	)
 
-	# Test dataset also has NO augmentations
+	# test dataset also has NO augmentations
 	test_dataset = BirdSoundDataset(
 		df=test_df,
 		recordings_path=recordings_path,
