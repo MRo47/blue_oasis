@@ -5,10 +5,11 @@ import pandas as pd
 import torch
 from augment import spec_augment, time_domain_augment
 from data_splitter import filter_classes, stratified_group_split
-from input_output import load_sample
 from logging_config import logger
 from preprocessing import extract_mel_db_spec, preprocess
 from torch.utils.data import DataLoader, Dataset
+
+from workspace.kenya_bird_classifier.bird_classifier.utils import load_sample
 
 
 class BirdSoundDataset(Dataset):
