@@ -1,12 +1,11 @@
-import logging
 from typing import Tuple
 
 import numpy as np
 import pandas as pd
+from logging_config import logger
 from pandas import DataFrame
 from sklearn.model_selection import GroupKFold, StratifiedGroupKFold
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def filter_classes(df: DataFrame, min_sample_size: int = 1):
     """
@@ -30,13 +29,14 @@ def filter_classes(df: DataFrame, min_sample_size: int = 1):
     """
     df = df.copy()
     if min_sample_size <= 1:
-        logging.warning("Nothing to filter, min_sample_size <= 1")
+        logger.warning("Nothing to filter, min_sample_size <= 1")
         return df
     class_counts = df['Species eBird Code'].value_counts()
     valid_classes = class_counts[class_counts >= min_sample_size].index
     num_classes = df['Species eBird Code'].nunique()
-    logging.warning(f"Filtering out {num_classes - len(valid_classes)}/{num_classes}, "
+    logger.warning(f"Filtering out {num_classes - len(valid_classes)}/{num_classes}, "
                 f"classes with less than {min_sample_size} samples.")
+    logger.info(f"New dataset will have {len(valid_classes)} classes")
     return df[df['Species eBird Code'].isin(valid_classes)]
 
 def stratified_group_split(
@@ -99,19 +99,19 @@ def stratified_group_split(
 
     # 2. partition df by groups
     if not problematic_classes.empty:
-        logging.warning(
+        logger.warning(
             f"Identified {len(problematic_classes)} problematic classes with too few "
             f"unique groups for reliable stratification."
         )
         # Find all groups that contain any of these problematic classes
         problematic_groups = df[df[label_id].isin(problematic_classes)][group_id].unique()
         
-        logging.info(f"Assigning {len(problematic_groups)} groups containing these classes to the 'problematic' split path.")
+        logger.info(f"Assigning {len(problematic_groups)} groups containing these classes to the 'problematic' split path.")
         
         df_problematic = df[df[group_id].isin(problematic_groups)]
         df_stratifiable = df[~df[group_id].isin(problematic_groups)]
     else:
-        logging.info("No problematic classes found. Using a standard stratified split.")
+        logger.info("No problematic classes found. Using a standard stratified split.")
         df_stratifiable = df
         df_problematic = pd.DataFrame(columns=df.columns)
 
@@ -155,7 +155,7 @@ def stratified_group_split(
 
             # Need to handle case where there are not enough groups for the split
             if train_val_p[group_id].nunique() < n_splits_val:
-                logging.warning("Not enough unique groups in problematic set for validation split. Assigning all to training.")
+                logger.warning("Not enough unique groups in problematic set for validation split. Assigning all to training.")
                 all_splits['train'].append(train_val_p)
             else:
                 train_idx_p, val_idx_p = next(gkf_val.split(X_tv_p, groups=groups_tv_p))
@@ -167,7 +167,7 @@ def stratified_group_split(
     val_df = pd.concat(all_splits['val'], ignore_index=True)
     test_df = pd.concat(all_splits['test'], ignore_index=True)
     
-    logging.info(f"Final split sizes -> Train: {len(train_df)}, Val: {len(val_df)}, Test: {len(test_df)}")
+    logger.info(f"Final split sizes -> Train: {len(train_df)}, Val: {len(val_df)}, Test: {len(test_df)}")
     
     # 6. verify
     train_groups = set(train_df[group_id].unique())
@@ -177,7 +177,7 @@ def stratified_group_split(
     assert len(train_groups.intersection(val_groups)) == 0, "Leakage: train/val groups overlap!"
     assert len(train_groups.intersection(test_groups)) == 0, "Leakage: train/test groups overlap!"
     assert len(val_groups.intersection(test_groups)) == 0, "Leakage: val/test groups overlap!"
-    logging.info("Successfully verified no group overlap between final splits.")
+    logger.info("Successfully verified no group overlap between final splits.")
 
     return train_df, val_df, test_df
 
@@ -197,10 +197,10 @@ def main():
         val_size=0.2, # 20% of original for test, 20% for val
     )
     
-    print("\n--- Split Results ---")
-    print(f"Train DF shape: {train_df.shape}")
-    print(f"Validation DF shape: {val_df.shape}")
-    print(f"Test DF shape: {test_df.shape}")
+    logger.info("--- Split Results ---")
+    logger.info(f"Train DF shape: {train_df.shape}")
+    logger.info(f"Validation DF shape: {val_df.shape}")
+    logger.info(f"Test DF shape: {test_df.shape}")
 
 if __name__ == "__main__":
     main()
