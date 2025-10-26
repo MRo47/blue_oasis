@@ -3,12 +3,12 @@ from typing import Callable
 
 import pandas as pd
 import torch
-from augment import spec_augment, time_domain_augment
-from data_splitter import filter_classes, stratified_group_split
-from logging_config import logger
-from preprocessing import extract_mel_db_spec, preprocess
+from bird_classifier.augment import spec_augment, time_domain_augment
+from bird_classifier.data_splitter import filter_classes, stratified_group_split
+from bird_classifier.logging_config import logger
+from bird_classifier.preprocessing import extract_mel_db_spec, preprocess
+from bird_classifier.utils import load_sample
 from torch.utils.data import DataLoader, Dataset
-from utils import load_sample
 
 
 class BirdSoundDataset(Dataset):
