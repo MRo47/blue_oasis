@@ -81,6 +81,9 @@ def stratified_group_split(
     -------
     Tuple[DataFrame, DataFrame, DataFrame]
         The train, validation and test dataframes.
+    
+    Note: The final split sizes are an approximation of the requested test_size and val_size.
+    Due to the constraint of keeping groups intact, the actual proportions may vary.
     """
     df = df.copy()
     
