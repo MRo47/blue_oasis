@@ -1,0 +1,94 @@
+# Bird sound classification
+
+Classify bird sounds using a deep learning model for a dataset of bird recordings.
+
+## Project structure
+
+
+
+## Dataset
+
+An annotated bird datset from soundscape recordings is Kenya is used for this project published [here](https://zenodo.org/records/10943500)
+
+The datset consists of 
+- 10294 annotations
+- 35 recordings
+- 176 unique bird species
+- location: west and southwest of Lake Baringo in Baringo County, Kenya.
+- recording period: 12-07-2021 to 02-11-2022 
+- duration: ~1 hour
+- sample rate: 32khz
+
+### Data quality
+
+**Balance**
+- The dataset is highly unbalanced in terms of species with annotations count ranging from 1 per species to 702 per species.
+- Top 1% species have more than 498 annotations while the bottom 10% have less than 2 annotations.
+- The annotations distribution plot can be seen below.
+![species distribution](images/species_distribution.png)
+
+**Duration anomalies**
+- According to the accompanying metadata, the annotations are point annotations, 7 annotations were found with a non zero duration.
+
+**Spectral ranges**
+- The 98% of the bird calls range in frequency centered from 283.8 Hz to 7597.8 Hz.
+- The frequency range plot of a subset of the species can be seen below. 
+![spectral range](images/spectral_range.png)
+
+**Background noise**
+- The recordings have been taken over a period of time and few different locations, the noise level and quality changes between the recording.
+
+**Overlaps**
+- Many of the annotations have overlapping bird calls.
+
+complete analysis can be found [here](notebooks/data_analysis.ipynb)
+
+### Preprocessing
+
+- Noise reduction was applied using the `noisereduce` library to even out the noise floor across recordings.
+- High pass filtering is applied to reduce mic hum or wind noises.
+- The sample is then normalized before computing the spectrogram.
+- 3 different featue extractors were tested to represent the bird calls, since the calls fall in range of human hearing perception, mel spectrogram was chosen as the best representation.
+- A 3 second window was chosen to compute the mel spectrogram.
+- below are the 3 different feature representation of a single bird call.
+  - STFT: short time fourier transform.
+  - Mel Spectrogram.
+  - Time frequency reassigned spectrogram. 
+![features](images/features.png)
+
+complete analysis can be found [here](notebooks/preprocessing.ipynb)
+
+### Splitting stratergy
+
+Given the unbalanced nature of the dataset and exitence of recording groups (different time and locations), a stratified group split was used to ensure no group leakage while distributing the species evenly across train, val and test sets.
+Since some classes in the dataset have very few annotations its impossible to distribute them evenly across train, val and test sets, hence the following splitting stratergy was used.
+
+1. Filter out classes that have less than 10 annotations.
+2. Identify classes that have too few unique groups, call these problematic classes. These classes cannot be safely stratified across required number of splits to ensure no group leakage.
+3. Partition the entire dataset by groups:
+    - `stratifiable`: Contains only "well-behaved" groups where every class within them has sufficient group diversity.
+    - `problematic`: Contains all the groups that were "contaminated" by at least one problematic class.
+4. Split the stratifiable dataset using a nested StratifiedGroupKFold.
+5. Split the problematic dataset using a nested GroupKFold (prioritizing group integrity only as stratification is not possible).
+6. Combine the splits from both stratifiable and problematic datasets to form the final train, val, and test sets.
+
+### Augmentations
+
+The following data augmentations are applied to the training dataset to add variation and improve model robustness.
+
+**Time domain augmentations**
+1. Shift the audio signal fractionally left or right by 30%, to account for positional variation in recording.
+2. Pitch shift the audio signal by +-4 semitones to account for pitch variation.
+3. Speed shift the audio signal by 20%.
+4. Volume shift the audio signal by 12dB to account for distance between recording equipment and the bird.
+5. Add background noise
+  - pink noise to simulate wind.
+  - brown noise to simulate rain/rumble.
+  - sample noise could be added from across the recordings but it was difficult to find a clean sample in teh recordings without bird sounds.
+
+**Spectral domain augmentations**
+1. Time masking was added to +-10 bins for robustness to missing sounds.
+2. Frequency masking was added to +-10 bins for robustness to partial frequency data.
+
+## Model
+
