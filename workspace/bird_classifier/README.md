@@ -84,7 +84,7 @@ The following data augmentations are applied to the training dataset to add vari
 5. Add background noise
   - pink noise to simulate wind.
   - brown noise to simulate rain/rumble.
-  - sample noise could be added from across the recordings but it was difficult to find a clean sample in teh recordings without bird sounds.
+  - sample noise could be added from across the recordings but it was difficult to find a clean sample in teh recordings without bird sounds. Some experiments were performed [here](notebooks/noise_extraction.ipynb)
 
 **Spectral domain augmentations**
 1. Time masking was added to +-10 bins for robustness to missing sounds.
@@ -93,6 +93,10 @@ The following data augmentations are applied to the training dataset to add vari
 ![spectral augmentations](images/augmentations.png)
 
 augmentation experiments can be found [here](notebooks/augmentations.ipynb)
+
+The full data augmentation and preprocessing pipeline can be found [here](notebooks/dataset.ipynb)
+
+The dataset and pytorch data loaders are implemented in [dataset.py](bird_classifier/dataset.py)
 
 ## Model
 
