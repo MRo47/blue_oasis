@@ -90,5 +90,44 @@ The following data augmentations are applied to the training dataset to add vari
 1. Time masking was added to +-10 bins for robustness to missing sounds.
 2. Frequency masking was added to +-10 bins for robustness to partial frequency data.
 
+![spectral augmentations](images/augmentations.png)
+
+augmentation experiments can be found [here](notebooks/augmentations.ipynb)
+
 ## Model
 
+### Selection
+- Since the data size is limited (around 6k train 2k validation and 2k test samples) a pretrained model should be fine tuned, even better if its trained on audio datasets.
+- A good starting point would be to find a model that is small and effcient to prevent overfitting.
+- CNNs would be a better choice than transformers given the data size.
+
+**ConvNext**
+- for higher kernal sizes 7x7 
+- benefits of transformers
+- LayerNorm normalises per instace which is irrespective of levels in other spectrograms.
+
+**EfficientNetV2**
+- for training efficiency and inference speed
+- Batchnorm will normalise across different samples which could have different volume levels.
+
+### Training
+
+**Loss function**
+Weighted Cross-Entropy Loss: to account for the unbalanced dataset.
+
+- calculate class weights
+- pass as weights to the loss function
+
+**Wighted Random Sampler**
+Oversample rare classes and undersample common classes.
+
+**Optimizer**
+AdamW optimizer
+
+**Learning rate**
+low learning rate for fine-tuning (1e-4, 3e-3)
+
+**Learning rate scheduler**
+`torch.optim.lr_scheduler.CosineAnnealingLR` smoothly decreases the LR following a cosine curve down to 0 over a set of epochs.
+
+### Tuning
