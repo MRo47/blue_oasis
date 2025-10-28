@@ -114,15 +114,19 @@ augmentation experiments can be found [here](notebooks/augmentations.ipynb)
 
 **Loss function**
 Weighted Cross-Entropy Loss: to account for the unbalanced dataset.
-
 - calculate class weights
 - pass as weights to the loss function
+
+**Metrics**
+- Macro F1 score (primary): Average of F1 score across all classes. Use this for hyperparameter tuning. `2 * (Precision * Recall) / (Precision + Recall)`
+- Weighted F1 score: Weighted average of F1 score across all classes, weighed by the fraction of samples in each class.
+- Confusion matrix: Visualize the performance of the model.
 
 **Wighted Random Sampler**
 Oversample rare classes and undersample common classes.
 
 **Optimizer**
-AdamW optimizer
+AdamW optimizer to start with
 
 **Learning rate**
 low learning rate for fine-tuning (1e-4, 3e-3)
@@ -130,4 +134,7 @@ low learning rate for fine-tuning (1e-4, 3e-3)
 **Learning rate scheduler**
 `torch.optim.lr_scheduler.CosineAnnealingLR` smoothly decreases the LR following a cosine curve down to 0 over a set of epochs.
 
-### Tuning
+### Tuning (Hyperparameters)
+
+- The datasets are already set up for cross validation.
+- Use libraries like [Optuna](https://optuna.org/) to find the best hyperparameters.
