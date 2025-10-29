@@ -112,7 +112,7 @@ The dataset and pytorch data loaders are implemented in [dataset.py](bird_classi
 
 **EfficientNetV2**
 - for training efficiency and inference speed
-- Batchnorm will normalise across different samples which could have different volume levels.
+- BatchNorm will normalise across different samples which could have different volume levels.
 
 ### Training
 
@@ -122,7 +122,7 @@ Weighted Cross-Entropy Loss: to account for the unbalanced dataset.
 - pass as weights to the loss function
 
 **Metrics**
-- Macro F1 score (primary): Average of F1 score across all classes. Use this for hyperparameter tuning. `2 * (Precision * Recall) / (Precision + Recall)`
+- Macro F1 score (primary): Average of F1 score across all classes. Use this for hyperparameter tuning. This score treats all classes as equal hence is suitable for class imbalanced datasets.
 - Weighted F1 score: Weighted average of F1 score across all classes, weighed by the fraction of samples in each class.
 - Confusion matrix: Visualize the performance of the model.
 
@@ -138,7 +138,19 @@ low learning rate for fine-tuning (1e-4, 3e-3)
 **Learning rate scheduler**
 `torch.optim.lr_scheduler.CosineAnnealingLR` smoothly decreases the LR following a cosine curve down to 0 over a set of epochs.
 
+Example training script can be found [here](scripts/train.py)
+```bash
+python train.py \
+  --annotations_csv ~/data/kenya_birds/annotations.csv \
+  --recordings_path ~/data/kenya_birds/soundscape_data \
+  --save_path ~/models/bird_classifier \
+  --batch_size 64 \
+  --num_epochs 30 \
+  --lr 5e-4
+```
+
 ### Tuning (Hyperparameters)
 
 - The datasets are already set up for cross validation.
 - Use libraries like [Optuna](https://optuna.org/) to find the best hyperparameters.
+- an examlple tuning using optuna can be found [here](scripts/tune.py)
