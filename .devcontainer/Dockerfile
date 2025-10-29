@@ -25,8 +25,10 @@ RUN python3 -m venv ${VENV_PATH} \
 ENV PATH="${VENV_PATH}/bin:$PATH"
 
 # Copy and install dependencies from requirements.txt
-COPY bird_classifier/requirements.txt .
+COPY bird_classifier/requirements.txt /tmp/requirements.txt
 
-RUN pip install --no-cache-dir -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
+RUN pip install --upgrade pip setuptools wheel
+
+RUN pip install --no-cache-dir -r /tmp/requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
 
 CMD ["/bin/bash"]

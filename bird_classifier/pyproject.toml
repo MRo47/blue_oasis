@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bird_classifier"
+version = "0.1.0"
+description = "Kenya bird classifier"
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["bird_classifier*"]

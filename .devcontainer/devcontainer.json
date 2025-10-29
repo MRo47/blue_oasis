@@ -4,13 +4,14 @@
     "docker-compose.yml"
   ],
 	"service": "blue_oasis_dev",
-	"workspaceFolder": "/home/ubuntu/blue_oasis/bird_classifier",
+	"workspaceFolder": "/home/ubuntu/blue_oasis",
   "features": {
     "ghcr.io/devcontainers/features/sshd:1": {}
   },
   "mounts": [
     "source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"
   ],
+  "postCreateCommand": "pip install -e /home/ubuntu/blue_oasis/bird_classifier",
   "remoteEnv": {
     "SSH_AUTH_SOCK": "/ssh-agent"
   },
