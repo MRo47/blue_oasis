@@ -6,7 +6,12 @@ This project is a development environment and report of building a bird calls cl
 
 ### Environment setup
 - This project uses VSCode devcontainers for development, install the plugin: [ms-vscode-remote.remote-containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
-- then build and start the container in VSCode by pressing CTRL+SHIFT+P > Dev Containers: Rebuild and Reopen Container
+- clone the repo
+```bash
+git clone https://github.com/MRo47/blue_oasis.git
+cd blue_oasis
+```
+- then from project root build and start the container in VSCode by pressing CTRL+SHIFT+P > Dev Containers: Rebuild and Reopen Container
 - this should also install the project `bird_classifier` and make it available in the virtual environment `~/.venv`
 
 ### Download dataset
