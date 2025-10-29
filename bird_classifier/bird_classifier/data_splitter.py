@@ -2,9 +2,10 @@ from typing import Tuple
 
 import numpy as np
 import pandas as pd
-from bird_classifier.logging_config import logger
 from pandas import DataFrame
 from sklearn.model_selection import GroupKFold, StratifiedGroupKFold
+
+from bird_classifier.logging_config import logger
 
 
 def filter_classes(df: DataFrame, min_sample_size: int = 1):
