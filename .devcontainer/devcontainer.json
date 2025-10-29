@@ -1,12 +1,10 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
 	"name": "blue_oasis_dev",
 	"dockerComposeFile": [
     "docker-compose.yml"
   ],
 	"service": "blue_oasis_dev",
-	"workspaceFolder": "/home/ubuntu/blue_oasis/workspace",
+	"workspaceFolder": "/home/ubuntu/blue_oasis/bird_classifier",
   "features": {
     "ghcr.io/devcontainers/features/sshd:1": {}
   },
@@ -24,6 +22,7 @@
         "ms-python.isort",
         "ms-python.python",
         "ms-python.vscode-pylance",
+        "ms-toolsai.jupyter",
         "njpwerner.autodocstring",
         "mhutchie.git-graph"
       ]

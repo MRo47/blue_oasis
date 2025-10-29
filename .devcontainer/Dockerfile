@@ -24,7 +24,9 @@ RUN python3 -m venv ${VENV_PATH} \
 
 ENV PATH="${VENV_PATH}/bin:$PATH"
 
-# acoustics and ml deps
-RUN pip install --no-cache-dir numpy scipy librosa soundfile matplotlib jupyter
+# Copy and install dependencies from requirements.txt
+COPY bird_classifier/requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
 
 CMD ["/bin/bash"]

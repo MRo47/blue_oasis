@@ -3,8 +3,8 @@ version: "3.9"
 services:
   blue_oasis_dev:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
     container_name: blue_oasis_dev
     environment:
       - PYTHONUNBUFFERED=1
