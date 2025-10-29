@@ -18,6 +18,9 @@ mkdir -p ~/data/kenya_birds/
 cd ~/data/kenya_birds/
 wget -c -O annotations.csv "https://zenodo.org/records/10943500/files/annotations.csv?download=1"
 wget -c -O soundscape_data.zip "https://zenodo.org/records/10943500/files/soundscape_data.zip?download=1"
+# similarly other files can be downloaded from the dataset, or download all as below and put unzipped data in
+# ~/data/kenya_birds
+# wget -c -O kenya_birds_data.zip https://zenodo.org/api/records/10943500/files-archive
 ```
 - then unzip it in the same directory
 ```bash
