@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential pkg-config \
     libavformat-dev libavcodec-dev libavutil-dev \
     libsndfile1-dev libffi-dev libssl-dev \
-    sudo libpng-dev libfreetype6-dev libopenblas-dev \
+    sudo libpng-dev libfreetype6-dev libopenblas-dev git-lfs \
     && rm -rf /var/lib/apt/lists/*
 
 # make sure non root can use sudo
