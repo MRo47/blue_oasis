@@ -154,3 +154,42 @@ python train.py \
 - The datasets are already set up for cross validation.
 - Use libraries like [Optuna](https://optuna.org/) to find the best hyperparameters.
 - an examlple tuning using optuna can be found [here](scripts/tune.py)
+
+Finally train the model on the whole dataset (except rare classes) after finding the best hyperparameters.
+
+### Computational requirements
+
+For example to train ConvNeXt-T model which has 28.6M parameters and needs 4.5 GFlops. [reference](https://github.com/facebookresearch/ConvNeXt)
+
+**Training**
+VRAM required(FP32) = model weights + gradients + optimizer states + activations
+
+- Model weights = 28.6M params * 4 bytes/param = ~114 MB
+- Gradients = 28.6M params * 4 bytes/param = ~114 MB
+- Optimizer states = 28.6M params * 2 states * 4 bytes/param = ~228 MB
+- Activations = sum (4 * product(output_size_of_layer) )
+
+VRAM required(FP32) = 114M + 114M + 228M + activation memory
+
+GFLOPS = 4.5 GFlops for 224 x 224 = 50176 pixels
+
+model input = 128 x 130 = 16640 pixels
+
+factor = 16640 / 50176 = 0.33
+
+GFLOPS = 4.5 * 0.33 = ~1.5 GFlops per input spectrogram
+
+One epoch = 6000 train images * (1.5 GFLOPs forward + ~3.0 GFLOPs backward) ≈ 27,000 GFLOPs or 27 TFLOPs.
+
+Assuming 50 training epochs: 50 * 27 = 1,350 TFLOPs.
+
+**Deployment**
+VRAM required(FP32) = model weights + activations
+
+model weights = 28.6M params * 4 bytes/param = ~114 MB
+
+Activations = sum (4 * product(output_size_of_layer) )
+
+VRAM required(FP16) = 114 + Activations
+
+
