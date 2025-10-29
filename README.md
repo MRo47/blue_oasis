@@ -13,7 +13,10 @@ This project is a development environment and report of building a bird calls cl
 - change the mount point in [docker-compose.yml](.devcontainer/docker-compose.yml) for data if the dataset is downloaded on host under volumes.
 - or download the dataset as follows
 ```bash
-cd ~/data
+# from the devcontainer environment
+mkdir -p ~/data/kenya_birds/
+cd ~/data/kenya_birds/
+wget -c -O annotations.csv "https://zenodo.org/records/10943500/files/annotations.csv?download=1"
 wget -c -O soundscape_data.zip "https://zenodo.org/records/10943500/files/soundscape_data.zip?download=1"
 ```
 - then unzip it in the same directory
