@@ -7,7 +7,7 @@ This project is a development environment and report of building a bird calls cl
 ### Environment setup
 - This project uses VSCode devcontainers for development, install the plugin: [ms-vscode-remote.remote-containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
 - then build and start the container in VSCode by pressing CTRL+SHIFT+P > Dev Containers: Rebuild and Reopen Container
-- this should also install the project `bird_classifier` and should be avaiable in the virtual environment `~/.venv`
+- this should also install the project `bird_classifier` and make it available in the virtual environment `~/.venv`
 
 ### Download dataset
 - change the mount point in [docker-compose.yml](.devcontainer/docker-compose.yml) for data if the dataset is downloaded on host under volumes.
@@ -35,7 +35,7 @@ rm soundscape_data.zip
 
 An annotated bird datset from soundscape recordings is Kenya is used for this project published [here](https://zenodo.org/records/10943500)
 
-The datset consists of 
+The dataset consists of 
 - 10294 annotations
 - 35 recordings
 - 176 unique bird species
@@ -73,7 +73,7 @@ complete analysis can be found [here](notebooks/data_analysis.ipynb)
 - Noise reduction was applied using the `noisereduce` library to even out the noise floor across recordings.
 - High pass filtering is applied to reduce mic hum or wind noises.
 - The sample is then normalized before computing the spectrogram.
-- 3 different featue extractors were tested to represent the bird calls, since the calls fall in range of human hearing perception, mel spectrogram was chosen as the best representation.
+- 3 different feature extractors were tested to represent the bird calls, since the calls fall in range of human hearing perception, mel spectrogram was chosen as the best representation.
 - A 3 second window was chosen to compute the mel spectrogram.
 - below are the 3 different feature representation of a single bird call.
   - STFT: short time fourier transform.
@@ -83,10 +83,10 @@ complete analysis can be found [here](notebooks/data_analysis.ipynb)
 
 complete analysis can be found [here](notebooks/preprocessing.ipynb)
 
-### Splitting stratergy
+### Splitting strategy
 
-Given the unbalanced nature of the dataset and exitence of recording groups (different time and locations), a stratified group split was used to ensure no group leakage while distributing the species evenly across train, val and test sets.
-Since some classes in the dataset have very few annotations its impossible to distribute them evenly across train, val and test sets, hence the following splitting stratergy was used.
+Given the unbalanced nature of the dataset and existence of recording groups (different time and locations), a stratified group split was used to ensure no group leakage while distributing the species evenly across train, val and test sets.
+Since some classes in the dataset have very few annotations its impossible to distribute them evenly across train, val and test sets, hence the following splitting strategy was used.
 
 1. Filter out classes that have less than 10 annotations.
 2. Identify classes that have too few unique groups, call these problematic classes. These classes cannot be safely stratified across required number of splits to ensure no group leakage.
@@ -127,17 +127,17 @@ The dataset and pytorch data loaders are implemented in [dataset.py](bird_classi
 
 ### Selection
 - Since the data size is limited (around 6k train 2k validation and 2k test samples) a pretrained model should be fine tuned, even better if its trained on audio datasets.
-- A good starting point would be to find a model that is small and effcient to prevent overfitting.
+- A good starting point would be to find a model that is small and efficient to prevent overfitting.
 - CNNs would be a better choice than transformers given the data size.
 
 **ConvNext**
-- for higher kernal sizes 7x7 
+- for higher kernel sizes 7x7 
 - benefits of transformers
-- LayerNorm normalises per instace which is irrespective of levels in other spectrograms.
+- LayerNorm normalizes per instance which is irrespective of levels in other spectrograms.
 
 **EfficientNetV2**
 - for training efficiency and inference speed
-- BatchNorm will normalise across different samples which could have different volume levels.
+- BatchNorm will normalize across different samples which could have different volume levels.
 
 ### Training
 
