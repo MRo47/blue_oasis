@@ -31,7 +31,12 @@ rm soundscape_data.zip
 ### Usage
 
 - The readme explains most of the experiment, some code is just abbreviations (eg: scripts/train.py)
-- Some modules have main() functions that can be executed to show some debug information (eg: bird_classifier/data_splitter.py will show number of samples in each split)
+- Some modules have main() functions that can be executed to show some debug information 
+```bash
+python -m bird_classifier.data_splitter # will show number of samples in each split
+
+python -m bird_classifier.dataset # will create datasets, iterate and report batch shapes
+```
 - The [notebooks](notebooks) directory contains experiments done before creating the scripts.
 
 ## Dataset
