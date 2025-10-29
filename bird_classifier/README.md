@@ -1,10 +1,35 @@
 # Bird sound classification
 
-Classify bird sounds using a deep learning model for a dataset of bird recordings.
+This project is a development environment and report of building a bird calls classifier on a dataset recorded in Kenya.
 
-## Project structure
+## Setup
 
+### Environment setup
+- This project uses VSCode devcontainers for development, install the plugin: [ms-vscode-remote.remote-containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+- then build and start the container in VSCode by pressing CTRL+SHIFT+P > Dev Containers: Rebuild and Reopen Container
+- this should also install the project `bird_classifier` and should be avaiable in the virtual environment `~/.venv`
 
+### Download dataset
+- change the mount point in [docker-compose.yml](.devcontainer/docker-compose.yml) for data if the dataset is downloaded on host under volumes.
+- or download the dataset as follows
+```bash
+cd ~/data
+wget -c -O soundscape_data.zip "https://zenodo.org/records/10943500/files/soundscape_data.zip?download=1"
+```
+- then unzip it in the same directory
+```bash
+unzip soundscape_data.zip
+```
+- optionally remove the zip
+```bash
+rm soundscape_data.zip
+```
+
+### Usage
+
+- The readme explains most of the experiment, some code is just abbreviations (eg: scripts/train.py)
+- Some modules have main() functions that can be executed to show some debug information (eg: bird_classifier/data_splitter.py will show number of samples in each split)
+- The [notebooks](bird_classifier/notebooks) contains experiments done before creating the scripts.
 
 ## Dataset
 
@@ -162,6 +187,8 @@ Finally train the model on the whole dataset (except rare classes) after finding
 For example to train ConvNeXt-T model which has 28.6M parameters and needs 4.5 GFlops. [reference](https://github.com/facebookresearch/ConvNeXt)
 
 **Training**
+
+
 VRAM required(FP32) = model weights + gradients + optimizer states + activations
 
 - Model weights = 28.6M params * 4 bytes/param = ~114 MB
@@ -184,6 +211,8 @@ One epoch = 6000 train images * (1.5 GFLOPs forward + ~3.0 GFLOPs backward) ≈ 
 Assuming 50 training epochs: 50 * 27 = 1,350 TFLOPs.
 
 **Deployment**
+
+
 VRAM required(FP32) = model weights + activations
 
 model weights = 28.6M params * 4 bytes/param = ~114 MB

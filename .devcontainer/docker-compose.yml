@@ -13,7 +13,7 @@ services:
       # - QT_X11_NO_MITSHM=1        # Fix for some Qt GUIs
     volumes:
       - ..:/home/ubuntu/blue_oasis:cached
-      - /home/myron/data:/home/ubuntu/data
+      - blue_oasis_data:/home/ubuntu/data
       # - /tmp/.X11-unix:/tmp/.X11-unix      # x11 forwarding
     user: "ubuntu"
     tty: true
