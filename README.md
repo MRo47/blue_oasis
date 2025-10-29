@@ -29,7 +29,7 @@ rm soundscape_data.zip
 
 - The readme explains most of the experiment, some code is just abbreviations (eg: scripts/train.py)
 - Some modules have main() functions that can be executed to show some debug information (eg: bird_classifier/data_splitter.py will show number of samples in each split)
-- The [notebooks](bird_classifier/notebooks) contains experiments done before creating the scripts.
+- The [notebooks](notebooks) directory contains experiments done before creating the scripts.
 
 ## Dataset
 
@@ -163,7 +163,7 @@ low learning rate for fine-tuning (1e-4, 3e-3)
 **Learning rate scheduler**
 `torch.optim.lr_scheduler.CosineAnnealingLR` smoothly decreases the LR following a cosine curve down to 0 over a set of epochs.
 
-Example training script can be found [here](scripts/train.py)
+Example training script can be found [here](bird_classifier/scripts/train.py)
 ```bash
 python train.py \
   --annotations_csv ~/data/kenya_birds/annotations.csv \
@@ -178,7 +178,7 @@ python train.py \
 
 - The datasets are already set up for cross validation.
 - Use libraries like [Optuna](https://optuna.org/) to find the best hyperparameters.
-- an examlple tuning using optuna can be found [here](scripts/tune.py)
+- an examlple tuning using optuna can be found [here](bird_classifier/scripts/tune.py)
 
 Finally train the model on the whole dataset (except rare classes) after finding the best hyperparameters.
 
