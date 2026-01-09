@@ -4,15 +4,16 @@ from pathlib import Path
 import pandas as pd
 import torch
 import torch.optim as optim
+from sklearn.metrics import classification_report, f1_score
+from timm import create_model
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+
 from bird_classifier.augment import spec_augment, time_domain_augment
 from bird_classifier.data_splitter import filter_classes, stratified_group_split
 from bird_classifier.dataset import BirdSoundDataset
 from bird_classifier.logging_config import logger
 from bird_classifier.preprocessing import preprocess
-from sklearn.metrics import classification_report, f1_score
-from timm import create_model
-from torch.utils.data import DataLoader
-from tqdm import tqdm
 
 
 def compute_class_weights(df, label_col, class_to_idx):
@@ -198,7 +199,7 @@ def main():
 	# weighted cross-entropy loss
 	criterion = torch.nn.CrossEntropyLoss(weight=class_weights.to(device))
 
-	optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+	optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=1e-2)
 
 	scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
 
